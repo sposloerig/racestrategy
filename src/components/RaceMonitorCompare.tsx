@@ -62,7 +62,6 @@ export function RaceMonitorCompare({ onClose, currentCarNumber }: RaceMonitorCom
     setSessions([]);
     setSelectedSession(null);
     setCompetitorData(null);
-    setSessionCompetitors([]);
     setIsLoading(true);
     setError(null);
 
