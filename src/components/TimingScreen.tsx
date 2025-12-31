@@ -21,7 +21,6 @@ import {
   Maximize2,
   Settings,
   ChevronDown,
-  Rewind,
 } from 'lucide-react';
 
 interface TimingScreenProps {
@@ -308,7 +307,6 @@ export function TimingScreen({ eventId, onBack }: TimingScreenProps) {
                 />
               ) : showStrategyDashboard && strategyCarNumber ? (
                 <CarStrategyDashboard 
-                  eventId={eventId}
                   carNumber={strategyCarNumber}
                   onBack={handleCloseStrategyDashboard}
                 />
@@ -317,7 +315,6 @@ export function TimingScreen({ eventId, onBack }: TimingScreenProps) {
                   {/* Strategy panel on left */}
                   <div style={{ width: '400px', borderRight: '1px solid var(--border-color)', overflow: 'auto' }}>
                     <StrategyPanel 
-                      eventId={eventId} 
                       onOpenStrategyDashboard={handleOpenStrategyDashboard}
                       onOpenRaceReplay={handleOpenRaceReplay}
                     />

@@ -1,27 +1,23 @@
 // Car Strategy Dashboard - Deep dive into race strategy
-import { useState, useMemo, useEffect } from 'react';
-import { useSessionStore, useUIStore } from '../store';
-import type { CarPosition, ControlLogEntry } from '../types/redmist';
+import { useState, useMemo } from 'react';
+import { useSessionStore } from '../store';
+import type { ControlLogEntry } from '../types/redmist';
 import { 
   ArrowLeft,
   Target,
-  Fuel,
-  Clock,
   TrendingUp,
   TrendingDown,
   AlertTriangle,
   Flag,
   Calculator,
   Users,
-  Zap,
   Timer,
-  ChevronRight,
   BarChart3,
   Activity,
+  Clock,
 } from 'lucide-react';
 
 interface CarStrategyDashboardProps {
-  eventId: number;
   carNumber: string;
   onBack: () => void;
 }
@@ -31,7 +27,6 @@ const DEFAULT_STINT_LAPS = 45; // Typical stint in endurance racing
 const DEFAULT_PIT_TIME_SECONDS = 180; // 3 minute pit stop
 const MAX_DRIVER_STINT_MINUTES = 120; // 2-hour max driver stint (ChampCar rule)
 const FUEL_STOP_PENALTY_SECONDS = 300; // 5-minute stop when taking fuel
-const CODE_35_SPEED_MPH = 35; // Code 35 (pace car) speed
 
 // Helper to parse race time string to milliseconds
 function parseRaceTimeToMs(timeStr: string | null | undefined): number {
@@ -58,17 +53,21 @@ function formatMsToTime(ms: number): string {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
-export function CarStrategyDashboard({ eventId, carNumber, onBack }: CarStrategyDashboardProps) {
+export function CarStrategyDashboard({ carNumber, onBack }: CarStrategyDashboardProps) {
   const { carPositions, sessionState, controlLog } = useSessionStore();
-  const { myCar } = useUIStore();
   
   const [selectedCompetitor, setSelectedCompetitor] = useState<string | null>(null);
   const [stintLength, setStintLength] = useState(DEFAULT_STINT_LAPS);
   const [maxStintMinutes, setMaxStintMinutes] = useState(MAX_DRIVER_STINT_MINUTES);
-  const [pitTimeSeconds, setPitTimeSeconds] = useState(DEFAULT_PIT_TIME_SECONDS);
-  const [targetGapSeconds, setTargetGapSeconds] = useState(0);
+  const [pitTimeSeconds, _setPitTimeSeconds] = useState(DEFAULT_PIT_TIME_SECONDS);
+  const [_targetGapSeconds, _setTargetGapSeconds] = useState(0);
   const [takingFuel, setTakingFuel] = useState(true); // Whether pit stop includes fuel
   const [stintMode, setStintMode] = useState<'laps' | 'time'>('time'); // Calculate by laps or time
+  
+  // Suppress unused variable warnings (used for future features)
+  void _setPitTimeSeconds;
+  void _targetGapSeconds;
+  void _setTargetGapSeconds;
 
   // Get my car data
   const myCarData = useMemo(() => {
@@ -133,7 +132,8 @@ export function CarStrategyDashboard({ eventId, carNumber, onBack }: CarStrategy
     
     // Optimal pit window (when to pit to avoid extra stint)
     // If we pit too late, we might need an extra short stint at the end
-    const lapsRemainingInRace = sessionState?.lapsToGo ?? 0;
+    const _lapsRemainingInRace = sessionState?.lapsToGo ?? 0; // Reserved for future use
+    void _lapsRemainingInRace;
     const optimalPitWindowStartLap = currentLap + Math.max(0, stintLength - 5); // 5 laps buffer
     const optimalPitWindowEndLap = currentLap + stintLength;
     

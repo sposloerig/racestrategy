@@ -7,8 +7,6 @@ import {
   TrendingUp, 
   TrendingDown, 
   Minus,
-  Car,
-  Clock,
   Flag,
   ChevronDown,
   ChevronUp,
@@ -18,7 +16,6 @@ import {
 } from 'lucide-react';
 
 interface StrategyPanelProps {
-  eventId: number;
   onOpenStrategyDashboard?: (carNumber: string) => void;
   onOpenRaceReplay?: () => void;
 }
@@ -68,7 +65,7 @@ function formatGap(gap: string | null | undefined): string {
   return gap;
 }
 
-export function StrategyPanel({ eventId, onOpenStrategyDashboard, onOpenRaceReplay }: StrategyPanelProps) {
+export function StrategyPanel({ onOpenStrategyDashboard, onOpenRaceReplay }: StrategyPanelProps) {
   const { carPositions, sessionState } = useSessionStore();
   const { myCar, setMyCar, classFilter, setClassFilter, showClassGroups, toggleClassGroups } = useUIStore();
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -203,7 +200,7 @@ export function StrategyPanel({ eventId, onOpenStrategyDashboard, onOpenRaceRepl
             {carPositions.map(car => {
               const teamName = car.n ? teamLookup[car.n] : undefined;
               return (
-                <option key={car.n} value={car.n}>
+                <option key={car.n} value={car.n ?? ''}>
                   #{car.n} - {car.c || 'No Class'} - P{car.p}{teamName ? ` - ${teamName}` : ''}
                 </option>
               );

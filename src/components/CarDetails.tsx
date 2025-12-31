@@ -148,7 +148,7 @@ export function CarDetails({ eventId, carNumber, onClose }: CarDetailsProps) {
               <StatCard 
                 label="Best Lap" 
                 value={car.bt || '-'}
-                subValue={car.bl > 0 ? `Lap ${car.bl}` : undefined}
+                subValue={car.bl && car.bl > 0 ? `Lap ${car.bl}` : undefined}
                 highlight={car.ibt}
               />
               <StatCard 
@@ -161,12 +161,12 @@ export function CarDetails({ eventId, carNumber, onClose }: CarDetailsProps) {
               />
               <StatCard 
                 label="Pit Stops" 
-                value={car.pl.toString()}
+                value={(car.pl ?? 0).toString()}
               />
             </div>
 
             {/* Position Change */}
-            {car.opg !== 0 && (
+            {car.opg !== undefined && car.opg !== 0 && (
               <div
                 style={{
                   display: 'flex',

@@ -142,7 +142,7 @@ export const db = {
     
     const { data, error } = await supabase
       .from('events')
-      .upsert(event, { onConflict: 'redmist_event_id' })
+      .upsert(event as never, { onConflict: 'redmist_event_id' })
       .select()
       .single();
     
@@ -193,7 +193,7 @@ export const db = {
     
     const { data, error } = await supabase
       .from('sessions')
-      .upsert(session, { onConflict: 'event_id,redmist_session_id' })
+      .upsert(session as never, { onConflict: 'event_id,redmist_session_id' })
       .select()
       .single();
     
@@ -251,7 +251,7 @@ export const db = {
       const chunk = laps.slice(i, i + chunkSize);
       const { error } = await supabase
         .from('laps')
-        .upsert(chunk, { onConflict: 'session_id,car_number,lap_number' });
+        .upsert(chunk as never[], { onConflict: 'session_id,car_number,lap_number' });
       
       if (error) {
         console.error('[Supabase] Error upserting laps chunk:', error);
@@ -341,7 +341,7 @@ export const db = {
     
     const { data, error } = await supabase
       .from('competitors')
-      .upsert(competitor)
+      .upsert(competitor as never)
       .select()
       .single();
     
@@ -376,7 +376,7 @@ export const db = {
     
     const { error } = await supabase
       .from('control_log')
-      .upsert(entries);
+      .upsert(entries as never[]);
     
     if (error) {
       console.error('[Supabase] Error upserting control log:', error);
@@ -407,7 +407,7 @@ export const db = {
     
     const { data, error } = await supabase
       .from('strategy_notes')
-      .insert(note)
+      .insert(note as never)
       .select()
       .single();
     
@@ -466,9 +466,10 @@ export const db = {
       }
       return null;
     }
+    const syncData = data as { last_synced_at?: string; status?: string };
     return {
-      lastSynced: data.last_synced_at ? new Date(data.last_synced_at) : null,
-      status: data.status,
+      lastSynced: syncData.last_synced_at ? new Date(syncData.last_synced_at) : null,
+      status: syncData.status || 'unknown',
     };
   },
 
@@ -483,7 +484,7 @@ export const db = {
         last_synced_at: new Date().toISOString(),
         status,
         sync_source: 'redmist',
-      }, { onConflict: 'entity_type,entity_id' });
+      } as never, { onConflict: 'entity_type,entity_id' });
     
     if (error) {
       console.error('[Supabase] Error updating sync status:', error);
@@ -496,7 +497,7 @@ export const db = {
     
     const { error } = await supabase
       .from('pit_stops')
-      .upsert(pitStops, { onConflict: 'session_id,car_number,pit_stop_number' });
+      .upsert(pitStops as never[], { onConflict: 'session_id,car_number,pit_stop_number' });
     
     if (error) {
       console.error('[Supabase] Error upserting pit stops:', error);

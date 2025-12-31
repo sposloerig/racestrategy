@@ -10,11 +10,10 @@
  * 3. Save combined historical data
  */
 
-import type { CarPosition, SessionState, ControlLogEntry } from '../types/redmist';
+import type { CarPosition, SessionState } from '../types/redmist';
 import type { 
   RMCompetitor, 
   RMLapTime, 
-  RMLiveSession,
   RMLiveCompetitor,
   UnifiedLapData,
   UnifiedCompetitor,

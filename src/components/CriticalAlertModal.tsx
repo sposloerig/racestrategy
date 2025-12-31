@@ -1,12 +1,11 @@
 // Critical Alert Modal - Full-screen takeover for team incidents
 import { useEffect, useState, useCallback } from 'react';
-import { useSessionStore, useUIStore } from '../store';
+import { useSessionStore } from '../store';
 import type { ControlLogEntry } from '../types/redmist';
 import { 
   AlertTriangle, 
   X, 
   Flag, 
-  Volume2,
   Bell,
 } from 'lucide-react';
 
@@ -87,7 +86,7 @@ export function CriticalAlertModal({
   const handleDismiss = () => {
     if (activeAlert) {
       const entryId = (activeAlert as ControlLogEntry & { __id?: string }).__id || 
-        `${activeAlert.t || activeAlert.timestamp}-${(activeAlert.m || activeAlert.message || '').slice(0, 20)}`;
+        `${activeAlert.t}-${(activeAlert.n || '').slice(0, 20)}`;
       setDismissedIds(prev => new Set(prev).add(entryId));
       onDismiss?.(activeAlert);
     }

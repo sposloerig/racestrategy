@@ -79,7 +79,7 @@ export function RaceReplay({ eventId, sessionId, onClose }: RaceReplayProps) {
   const loadingStartedRef = useRef(false);
   // Capture initial car positions to avoid dependency on changing carPositions
   const initialCarPositionsRef = useRef(carPositions);
-  const autoRefreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const autoRefreshIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   
   // Detect if session is live (not completed - checkered flag = 5)
   const isSessionLive = useMemo(() => {
@@ -256,13 +256,13 @@ export function RaceReplay({ eventId, sessionId, onClose }: RaceReplayProps) {
                 session_id: sessionId,
                 car_number: carNumber,
                 lap_number: lapNum,
-                lap_time_ms: parseLapTimeToMs(lap.ltm),
-                lap_time_formatted: lap.ltm || undefined,
-                position: lap.ovp ?? lap.p ?? lap.llo,
-                gap_to_leader: lap.og ?? lap.gl,
-                best_lap_time_ms: parseLapTimeToMs(lap.bt),
+                lap_time_ms: parseLapTimeToMs(lap.ltm) || undefined,
+                lap_time_formatted: lap.ltm ?? undefined,
+                position: lap.ovp ?? lap.p ?? lap.llo ?? undefined,
+                gap_to_leader: lap.og ?? lap.gl ?? undefined,
+                best_lap_time_ms: parseLapTimeToMs(lap.bt) || undefined,
                 pit_in: lap.ip,
-                pit_out: lap.op,
+                pit_out: lap.lip, // Use lip (last in pit) as proxy for pit out
                 raw_data: lap as unknown as Record<string, unknown>,
               });
             }

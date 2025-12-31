@@ -39,16 +39,17 @@ export async function syncEvent(
     }
 
     // Upsert to Supabase
+    // Map Event type (abbreviated properties) to DbEvent
     const dbEvent = await db.upsertEvent({
       redmist_event_id: eventId,
-      name: event.name,
-      series: event.series,
-      track_name: event.trackName,
-      track_id: event.trackId,
-      start_date: event.startDate,
-      end_date: event.endDate,
-      is_live: event.isLive || false,
-      raw_data: event as Record<string, unknown>,
+      name: event.n || `Event ${eventId}`,
+      series: undefined, // Not available in Event type
+      track_name: undefined, // Not available in Event type
+      track_id: undefined, // Not available in Event type
+      start_date: event.d || undefined,
+      end_date: undefined, // Not available in Event type
+      is_live: false,
+      raw_data: event as unknown as Record<string, unknown>,
     });
 
     await db.updateSyncStatus('event', eventId.toString());
@@ -93,7 +94,7 @@ export async function syncSession(
       name: results.sessionName || `Session ${sessionId}`,
       session_type: results.isPracticeQualifying ? 'practice' : 'race',
       is_complete: !results.isLive,
-      raw_data: results as Record<string, unknown>,
+      raw_data: results as unknown as Record<string, unknown>,
     });
 
     await db.updateSyncStatus('session', `${eventId}-${sessionId}`);
@@ -148,21 +149,22 @@ export async function syncLapData(
         const laps = await api.getCarLaps(eventId, sessionId, carNumber);
         
         if (laps && laps.length > 0) {
-          for (const lap of laps) {
+          for (let i = 0; i < laps.length; i++) {
+            const lap = laps[i];
             allLaps.push({
               session_id: dbSessionId,
               car_number: carNumber,
-              lap_number: lap.l ?? parseInt(lap.ln || '0'),
-              lap_time_ms: lap.ltm ? parseLapTimeToMs(lap.ltm) : lap.lastLapMs,
-              lap_time_formatted: lap.ltm,
-              position: lap.ovp ?? lap.p,
-              class_position: lap.cp ?? lap.classPosition,
-              gap_to_leader: lap.og ?? lap.gl,
-              best_lap_time_ms: lap.bt ? parseLapTimeToMs(lap.bt) : lap.bestLapMs,
-              pit_in: lap.ip === true || lap.inPit === true,
-              pit_out: false, // Would need to detect from previous lap
-              flag_status: estimateFlagStatus(lap),
-              raw_data: lap as Record<string, unknown>,
+              lap_number: i + 1, // Use index as lap number
+              lap_time_ms: lap.ltm ? parseLapTimeToMs(lap.ltm) : undefined,
+              lap_time_formatted: lap.ltm ?? undefined,
+              position: lap.ovp ?? lap.p ?? undefined,
+              class_position: lap.cp ?? undefined,
+              gap_to_leader: lap.og ?? lap.gl ?? undefined,
+              best_lap_time_ms: lap.bt ? parseLapTimeToMs(lap.bt) : undefined,
+              pit_in: lap.ip === true,
+              pit_out: lap.lip === true, // lip = last in pit
+              flag_status: estimateFlagStatus(lap as unknown as Record<string, unknown>),
+              raw_data: lap as unknown as Record<string, unknown>,
             });
           }
         }

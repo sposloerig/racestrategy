@@ -28,7 +28,6 @@ import {
   redmistToUnified,
   raceMonitorToUnified,
   mergeCompetitorData,
-  analyzeLapsByFlag,
   transponderStore,
 } from '../lib/unified-data';
 

@@ -461,7 +461,7 @@ function parseTime(timeStr: string): number {
 }
 
 // Get CSS class for lap time display
-function getTimeClass(lastTime: string | null, bestTime: string | null, isBestTime: boolean): string {
+function getTimeClass(lastTime: string | null | undefined, bestTime: string | null | undefined, isBestTime?: boolean): string {
   if (!lastTime) return '';
   
   if (isBestTime) {

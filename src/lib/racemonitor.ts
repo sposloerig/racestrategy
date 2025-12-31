@@ -14,7 +14,6 @@ import type {
   RMCompetitorDetails,
   RMLiveSession,
   RMStreamingConnection,
-  RMLapTime,
   RMStreamCommand,
   RMCommand_A,
   RMCommand_B,
