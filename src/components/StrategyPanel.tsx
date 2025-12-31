@@ -20,6 +20,7 @@ interface StrategyPanelProps {
   onOpenStrategyDashboard?: (carNumber: string) => void;
   onOpenRaceReplay?: () => void;
   onOpenRaceMonitorCompare?: () => void;
+  onOpenDataSourceComparison?: () => void;
 }
 
 // Calculate gap trend between two cars based on recent lap times
@@ -67,7 +68,7 @@ function formatGap(gap: string | null | undefined): string {
   return gap;
 }
 
-export function StrategyPanel({ onOpenStrategyDashboard, onOpenRaceReplay, onOpenRaceMonitorCompare }: StrategyPanelProps) {
+export function StrategyPanel({ onOpenStrategyDashboard, onOpenRaceReplay, onOpenRaceMonitorCompare, onOpenDataSourceComparison }: StrategyPanelProps) {
   const { carPositions, sessionState } = useSessionStore();
   const { myCar, setMyCar, classFilter, setClassFilter, showClassGroups, toggleClassGroups } = useUIStore();
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -286,7 +287,7 @@ export function StrategyPanel({ onOpenStrategyDashboard, onOpenRaceReplay, onOpe
           </button>
         )}
         
-        {/* Race Monitor Compare Button */}
+        {/* Race Monitor Compare Button - Quick per-car lookup */}
         {onOpenRaceMonitorCompare && (
           <button
             onClick={onOpenRaceMonitorCompare}
@@ -304,7 +305,29 @@ export function StrategyPanel({ onOpenStrategyDashboard, onOpenRaceReplay, onOpe
             }}
           >
             <Zap size={16} />
-            Compare with Race Monitor
+            Race Monitor: Quick Lookup
+          </button>
+        )}
+        
+        {/* Full Data Source Comparison */}
+        {onOpenDataSourceComparison && (
+          <button
+            onClick={onOpenDataSourceComparison}
+            className="btn"
+            style={{
+              width: '100%',
+              marginTop: '0.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem',
+              background: 'linear-gradient(135deg, #ff990022, #ffcc0022)',
+              border: '1px solid var(--accent-yellow)',
+              color: 'var(--accent-yellow)',
+            }}
+          >
+            <Zap size={16} />
+            Full Data Comparison (RM vs RedMist)
           </button>
         )}
       </div>

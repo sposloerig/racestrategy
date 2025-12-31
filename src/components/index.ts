@@ -14,3 +14,4 @@ export { CarStrategyDashboard } from './CarStrategyDashboard';
 export { CriticalAlertModal, useCriticalAlerts } from './CriticalAlertModal';
 export { RaceReplay } from './RaceReplay';
 export { RaceMonitorCompare } from './RaceMonitorCompare';
+export { DataSourceComparison } from './DataSourceComparison';

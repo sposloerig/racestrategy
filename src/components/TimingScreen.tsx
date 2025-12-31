@@ -12,6 +12,7 @@ import { CarStrategyDashboard } from './CarStrategyDashboard';
 import { CriticalAlertModal } from './CriticalAlertModal';
 import { RaceReplay } from './RaceReplay';
 import { RaceMonitorCompare } from './RaceMonitorCompare';
+import { DataSourceComparison } from './DataSourceComparison';
 import { 
   ArrowLeft, 
   Radio, 
@@ -53,6 +54,7 @@ export function TimingScreen({ eventId, onBack }: TimingScreenProps) {
   const [strategyCarNumber, setStrategyCarNumber] = useState<string | null>(null);
   const [showRaceReplay, setShowRaceReplay] = useState(false);
   const [showRaceMonitorCompare, setShowRaceMonitorCompare] = useState(false);
+  const [showDataSourceComparison, setShowDataSourceComparison] = useState(false);
 
   // Handler to open the strategy dashboard
   const handleOpenStrategyDashboard = (carNumber: string) => {
@@ -78,6 +80,16 @@ export function TimingScreen({ eventId, onBack }: TimingScreenProps) {
   // Handler to close Race Monitor compare
   const handleCloseRaceMonitorCompare = () => {
     setShowRaceMonitorCompare(false);
+  };
+
+  // Handler to open data source comparison
+  const handleOpenDataSourceComparison = () => {
+    setShowDataSourceComparison(true);
+  };
+
+  // Handler to close data source comparison
+  const handleCloseDataSourceComparison = () => {
+    setShowDataSourceComparison(false);
   };
 
   // Handler to close the strategy dashboard
@@ -330,6 +342,7 @@ export function TimingScreen({ eventId, onBack }: TimingScreenProps) {
                       onOpenStrategyDashboard={handleOpenStrategyDashboard}
                       onOpenRaceReplay={handleOpenRaceReplay}
                       onOpenRaceMonitorCompare={handleOpenRaceMonitorCompare}
+                      onOpenDataSourceComparison={handleOpenDataSourceComparison}
                     />
                   </div>
                   {/* Timing table on right */}
@@ -408,6 +421,11 @@ export function TimingScreen({ eventId, onBack }: TimingScreenProps) {
           currentEventName={selectedEvent?.n}
           currentCarNumber={myCar || undefined}
         />
+      )}
+      
+      {/* Data Source Comparison Modal */}
+      {showDataSourceComparison && (
+        <DataSourceComparison onClose={handleCloseDataSourceComparison} />
       )}
     </div>
   );
