@@ -31,8 +31,10 @@ import type {
   RMCommand_RMHL,
 } from '../types/racemonitor';
 
-// API Base URL - Race-Monitor doesn't have CORS issues typically
-const API_BASE_URL = 'https://api.race-monitor.com/v2';
+// API Base URL - Use proxy in production to bypass CORS
+const API_BASE_URL = import.meta.env.DEV 
+  ? 'https://api.race-monitor.com/v2'  // Direct in dev (use browser extension or proxy)
+  : '/.netlify/functions/racemonitor';  // Proxy in production
 
 /**
  * Race-Monitor API Client
@@ -69,18 +71,36 @@ export class RaceMonitorApi {
       throw new Error('Race-Monitor API token not configured');
     }
 
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        apiToken: this.apiToken,
-        ...Object.fromEntries(
-          Object.entries(params).map(([k, v]) => [k, String(v)])
-        ),
-      }).toString(),
-    });
+    let response: Response;
+    
+    if (import.meta.env.DEV) {
+      // Direct call in development
+      response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          apiToken: this.apiToken,
+          ...Object.fromEntries(
+            Object.entries(params).map(([k, v]) => [k, String(v)])
+          ),
+        }).toString(),
+      });
+    } else {
+      // Use proxy in production
+      response = await fetch(API_BASE_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          endpoint,
+          apiToken: this.apiToken,
+          ...params,
+        }),
+      });
+    }
 
     if (!response.ok) {
       throw new Error(`Race-Monitor API error: ${response.status} ${response.statusText}`);
