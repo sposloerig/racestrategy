@@ -3,10 +3,12 @@
 
 import type { TokenResponse } from '../types/redmist';
 
-// Use proxy in development to bypass CORS
+// Use proxy to bypass CORS
+// In development: Vite proxy
+// In production: Netlify Function proxy
 const AUTH_URL = import.meta.env.DEV 
   ? '/auth/realms/redmist/protocol/openid-connect/token'
-  : 'https://auth.redmist.racing/realms/redmist/protocol/openid-connect/token';
+  : '/.netlify/functions/auth';
 const TOKEN_REFRESH_MARGIN = 30000; // Refresh 30 seconds before expiry
 
 interface AuthConfig {

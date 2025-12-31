@@ -3,6 +3,7 @@
 [build]
   command = "npm run build"
   publish = "dist"
+  functions = "netlify/functions"
 
 # These VITE_* environment variables are intentionally exposed to the client
 # They are public API keys designed for frontend use:
