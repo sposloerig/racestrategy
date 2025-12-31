@@ -13,11 +13,13 @@ import {
   Star,
   Users,
   Rewind,
+  Zap,
 } from 'lucide-react';
 
 interface StrategyPanelProps {
   onOpenStrategyDashboard?: (carNumber: string) => void;
   onOpenRaceReplay?: () => void;
+  onOpenRaceMonitorCompare?: () => void;
 }
 
 // Calculate gap trend between two cars based on recent lap times
@@ -65,7 +67,7 @@ function formatGap(gap: string | null | undefined): string {
   return gap;
 }
 
-export function StrategyPanel({ onOpenStrategyDashboard, onOpenRaceReplay }: StrategyPanelProps) {
+export function StrategyPanel({ onOpenStrategyDashboard, onOpenRaceReplay, onOpenRaceMonitorCompare }: StrategyPanelProps) {
   const { carPositions, sessionState } = useSessionStore();
   const { myCar, setMyCar, classFilter, setClassFilter, showClassGroups, toggleClassGroups } = useUIStore();
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -281,6 +283,28 @@ export function StrategyPanel({ onOpenStrategyDashboard, onOpenRaceReplay }: Str
           >
             <Rewind size={16} />
             Race Replay / Time Machine
+          </button>
+        )}
+        
+        {/* Race Monitor Compare Button */}
+        {onOpenRaceMonitorCompare && (
+          <button
+            onClick={onOpenRaceMonitorCompare}
+            className="btn"
+            style={{
+              width: '100%',
+              marginTop: '0.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem',
+              background: 'linear-gradient(135deg, #0066ff22, #00ccff22)',
+              border: '1px solid var(--accent-blue)',
+              color: 'var(--accent-blue)',
+            }}
+          >
+            <Zap size={16} />
+            Compare with Race Monitor
           </button>
         )}
       </div>

@@ -13,3 +13,4 @@ export { StrategyPanel } from './StrategyPanel';
 export { CarStrategyDashboard } from './CarStrategyDashboard';
 export { CriticalAlertModal, useCriticalAlerts } from './CriticalAlertModal';
 export { RaceReplay } from './RaceReplay';
+export { RaceMonitorCompare } from './RaceMonitorCompare';

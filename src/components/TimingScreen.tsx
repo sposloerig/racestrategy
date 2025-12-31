@@ -11,6 +11,7 @@ import { StrategyPanel } from './StrategyPanel';
 import { CarStrategyDashboard } from './CarStrategyDashboard';
 import { CriticalAlertModal } from './CriticalAlertModal';
 import { RaceReplay } from './RaceReplay';
+import { RaceMonitorCompare } from './RaceMonitorCompare';
 import { 
   ArrowLeft, 
   Radio, 
@@ -51,6 +52,7 @@ export function TimingScreen({ eventId, onBack }: TimingScreenProps) {
   const [showStrategyDashboard, setShowStrategyDashboard] = useState(false);
   const [strategyCarNumber, setStrategyCarNumber] = useState<string | null>(null);
   const [showRaceReplay, setShowRaceReplay] = useState(false);
+  const [showRaceMonitorCompare, setShowRaceMonitorCompare] = useState(false);
 
   // Handler to open the strategy dashboard
   const handleOpenStrategyDashboard = (carNumber: string) => {
@@ -66,6 +68,16 @@ export function TimingScreen({ eventId, onBack }: TimingScreenProps) {
   // Handler to close race replay
   const handleCloseRaceReplay = () => {
     setShowRaceReplay(false);
+  };
+
+  // Handler to open Race Monitor compare
+  const handleOpenRaceMonitorCompare = () => {
+    setShowRaceMonitorCompare(true);
+  };
+
+  // Handler to close Race Monitor compare
+  const handleCloseRaceMonitorCompare = () => {
+    setShowRaceMonitorCompare(false);
   };
 
   // Handler to close the strategy dashboard
@@ -317,6 +329,7 @@ export function TimingScreen({ eventId, onBack }: TimingScreenProps) {
                     <StrategyPanel 
                       onOpenStrategyDashboard={handleOpenStrategyDashboard}
                       onOpenRaceReplay={handleOpenRaceReplay}
+                      onOpenRaceMonitorCompare={handleOpenRaceMonitorCompare}
                     />
                   </div>
                   {/* Timing table on right */}
@@ -385,6 +398,15 @@ export function TimingScreen({ eventId, onBack }: TimingScreenProps) {
         <CriticalAlertModal 
           carNumber={myCar}
           teamKeywords={[]} // Add team name keywords here if needed
+        />
+      )}
+      
+      {/* Race Monitor Compare Modal */}
+      {showRaceMonitorCompare && (
+        <RaceMonitorCompare 
+          onClose={handleCloseRaceMonitorCompare}
+          currentEventName={selectedEvent?.n}
+          currentCarNumber={myCar || undefined}
         />
       )}
     </div>
