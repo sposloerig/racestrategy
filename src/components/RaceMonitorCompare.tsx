@@ -23,7 +23,6 @@ export function RaceMonitorCompare({ onClose, currentCarNumber }: RaceMonitorCom
   const [selectedRace, setSelectedRace] = useState<RMRace | null>(null);
   const [selectedSession, setSelectedSession] = useState<RMSession | null>(null);
   const [competitorData, setCompetitorData] = useState<RMCompetitorDetails | null>(null);
-  const [sessionCompetitors, setSessionCompetitors] = useState<RMCompetitor[]>([]);
   const [carNumber, setCarNumber] = useState(currentCarNumber || '');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -90,7 +89,6 @@ export function RaceMonitorCompare({ onClose, currentCarNumber }: RaceMonitorCom
       // First get session details to find the competitor ID
       const sessionDetails = await raceMonitorApi.getSessionDetails(selectedSession.ID, true);
       setRequestCount(prev => prev + 1);
-      setSessionCompetitors(sessionDetails.SortedCompetitors || []);
 
       // Find competitor by car number
       const competitor = sessionDetails.SortedCompetitors?.find(
