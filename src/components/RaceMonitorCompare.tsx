@@ -1,14 +1,12 @@
 // Race Monitor Comparison Panel - Shows what extra data Race Monitor provides
 import { useState } from 'react';
 import { raceMonitorApi } from '../lib/racemonitor';
-import type { RMRace, RMSession, RMCompetitorDetails, RMLapTime } from '../types/racemonitor';
+import type { RMRace, RMSession, RMCompetitorDetails, RMLapTime, RMCompetitor } from '../types/racemonitor';
 import { 
   Search, 
   Zap, 
   Flag, 
-  Clock, 
   AlertTriangle,
-  CheckCircle,
   X,
   RefreshCw,
 } from 'lucide-react';
@@ -19,13 +17,13 @@ interface RaceMonitorCompareProps {
   currentCarNumber?: string;
 }
 
-export function RaceMonitorCompare({ onClose, currentEventName, currentCarNumber }: RaceMonitorCompareProps) {
-  const [searchTerm, setSearchTerm] = useState(currentEventName || '');
+export function RaceMonitorCompare({ onClose, currentCarNumber }: RaceMonitorCompareProps) {
   const [races, setRaces] = useState<RMRace[]>([]);
   const [sessions, setSessions] = useState<RMSession[]>([]);
   const [selectedRace, setSelectedRace] = useState<RMRace | null>(null);
   const [selectedSession, setSelectedSession] = useState<RMSession | null>(null);
   const [competitorData, setCompetitorData] = useState<RMCompetitorDetails | null>(null);
+  const [sessionCompetitors, setSessionCompetitors] = useState<RMCompetitor[]>([]);
   const [carNumber, setCarNumber] = useState(currentCarNumber || '');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,9 +32,9 @@ export function RaceMonitorCompare({ onClose, currentEventName, currentCarNumber
   const apiToken = import.meta.env.VITE_RACEMONITOR_API_TOKEN;
   const isConfigured = !!apiToken;
 
-  // Search for races (1 request)
-  const handleSearch = async () => {
-    if (!searchTerm.trim() || !isConfigured) return;
+  // Load all races from account (1 request)
+  const handleLoadRaces = async () => {
+    if (!isConfigured) return;
     
     setIsLoading(true);
     setError(null);
@@ -48,11 +46,12 @@ export function RaceMonitorCompare({ onClose, currentEventName, currentCarNumber
 
     try {
       raceMonitorApi.setApiToken(apiToken);
-      const results = await raceMonitorApi.searchRaces(searchTerm);
-      setRaces(results.slice(0, 10)); // Limit to 10
+      // Use getAllRaces or getPastRaces - these are the available methods
+      const results = await raceMonitorApi.getAllRaces();
+      setRaces(results.slice(0, 20)); // Limit to 20
       setRequestCount(prev => prev + 1);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Search failed');
+      setError(err instanceof Error ? err.message : 'Failed to load races');
     } finally {
       setIsLoading(false);
     }
@@ -64,11 +63,12 @@ export function RaceMonitorCompare({ onClose, currentEventName, currentCarNumber
     setSessions([]);
     setSelectedSession(null);
     setCompetitorData(null);
+    setSessionCompetitors([]);
     setIsLoading(true);
     setError(null);
 
     try {
-      const sessionList = await raceMonitorApi.getSessionsForRace(parseInt(race.ID));
+      const sessionList = await raceMonitorApi.getSessionsForRace(race.ID);
       setSessions(sessionList);
       setRequestCount(prev => prev + 1);
     } catch (err) {
@@ -88,21 +88,23 @@ export function RaceMonitorCompare({ onClose, currentEventName, currentCarNumber
 
     try {
       // First get session details to find the competitor ID
-      const sessionDetails = await raceMonitorApi.getSessionDetails(parseInt(selectedSession.ID), true);
+      const sessionDetails = await raceMonitorApi.getSessionDetails(selectedSession.ID, true);
       setRequestCount(prev => prev + 1);
+      setSessionCompetitors(sessionDetails.SortedCompetitors || []);
 
       // Find competitor by car number
-      const competitor = sessionDetails.Competitors?.find(
-        c => c.Number === carNumber || c.Number === `#${carNumber}` || c.Number === carNumber.replace('#', '')
+      const competitor = sessionDetails.SortedCompetitors?.find(
+        (c: RMCompetitor) => c.Number === carNumber || c.Number === `#${carNumber}` || c.Number === carNumber.replace('#', '')
       );
 
       if (!competitor) {
-        setError(`Car #${carNumber} not found in this session. Available: ${sessionDetails.Competitors?.map(c => c.Number).join(', ')}`);
+        const availableNumbers = sessionDetails.SortedCompetitors?.map((c: RMCompetitor) => c.Number).join(', ') || 'none';
+        setError(`Car #${carNumber} not found in this session. Available: ${availableNumbers}`);
         return;
       }
 
       // Get detailed lap data
-      const details = await raceMonitorApi.getCompetitorDetails(parseInt(selectedSession.ID), competitor.ID);
+      const details = await raceMonitorApi.getCompetitorDetails(selectedSession.ID, competitor.ID);
       setCompetitorData(details);
       setRequestCount(prev => prev + 1);
     } catch (err) {
@@ -195,37 +197,20 @@ export function RaceMonitorCompare({ onClose, currentEventName, currentCarNumber
             </div>
           ) : (
             <>
-              {/* Search */}
-              <div style={{ marginBottom: '1rem' }}>
-                <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', display: 'block' }}>
-                  Search for race/event:
-                </label>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                    placeholder="e.g. Lucky Dog, ChampCar, LDRL..."
-                    style={{
-                      flex: 1,
-                      padding: '0.5rem',
-                      background: 'var(--bg-tertiary)',
-                      border: '1px solid var(--border-color)',
-                      borderRadius: '6px',
-                      color: 'var(--text-primary)',
-                    }}
-                  />
+              {/* Load Races Button */}
+              {races.length === 0 && (
+                <div style={{ marginBottom: '1rem' }}>
                   <button 
                     className="btn btn-primary" 
-                    onClick={handleSearch}
-                    disabled={isLoading || !searchTerm.trim()}
+                    onClick={handleLoadRaces}
+                    disabled={isLoading}
+                    style={{ width: '100%' }}
                   >
-                    <Search size={16} />
-                    Search
+                    {isLoading ? <RefreshCw size={16} className="spin" /> : <Search size={16} />}
+                    Load My Race Monitor Races
                   </button>
                 </div>
-              </div>
+              )}
 
               {/* Race Selection */}
               {races.length > 0 && (
@@ -236,7 +221,7 @@ export function RaceMonitorCompare({ onClose, currentEventName, currentCarNumber
                   <select
                     value={selectedRace?.ID || ''}
                     onChange={(e) => {
-                      const race = races.find(r => r.ID === e.target.value);
+                      const race = races.find(r => r.ID === parseInt(e.target.value));
                       if (race) handleSelectRace(race);
                     }}
                     style={{
@@ -251,7 +236,7 @@ export function RaceMonitorCompare({ onClose, currentEventName, currentCarNumber
                     <option value="">Select a race...</option>
                     {races.map(race => (
                       <option key={race.ID} value={race.ID}>
-                        {race.Name} - {race.Date} ({race.Track})
+                        {race.Name} - {race.StartDate} ({race.TrackName})
                       </option>
                     ))}
                   </select>
@@ -267,7 +252,7 @@ export function RaceMonitorCompare({ onClose, currentEventName, currentCarNumber
                   <select
                     value={selectedSession?.ID || ''}
                     onChange={(e) => {
-                      const session = sessions.find(s => s.ID === e.target.value);
+                      const session = sessions.find(s => s.ID === parseInt(e.target.value));
                       setSelectedSession(session || null);
                       setCompetitorData(null);
                     }}
@@ -316,7 +301,7 @@ export function RaceMonitorCompare({ onClose, currentEventName, currentCarNumber
                       onClick={handleLoadLapData}
                       disabled={isLoading || !carNumber.trim()}
                     >
-                      {isLoading ? <RefreshCw size={16} className="spin" /> : <Clock size={16} />}
+                      {isLoading ? <RefreshCw size={16} className="spin" /> : <Search size={16} />}
                       Load Lap Data
                     </button>
                   </div>
@@ -348,7 +333,6 @@ export function RaceMonitorCompare({ onClose, currentEventName, currentCarNumber
                     gap: '0.5rem',
                     fontSize: '1rem',
                   }}>
-                    <CheckCircle size={18} style={{ color: 'var(--accent-green)' }} />
                     Car #{competitorData.Competitor.Number} - {competitorData.Laps.length} Laps
                   </h3>
 
@@ -526,4 +510,3 @@ export function RaceMonitorCompare({ onClose, currentEventName, currentCarNumber
     </div>
   );
 }
-

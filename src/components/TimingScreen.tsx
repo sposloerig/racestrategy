@@ -418,7 +418,6 @@ export function TimingScreen({ eventId, onBack }: TimingScreenProps) {
       {showRaceMonitorCompare && (
         <RaceMonitorCompare 
           onClose={handleCloseRaceMonitorCompare}
-          currentEventName={selectedEvent?.n}
           currentCarNumber={myCar || undefined}
         />
       )}

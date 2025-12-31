@@ -1,6 +1,6 @@
 // Data Source Comparison - Side-by-side view of RedMist vs Race Monitor
-import { useState, useEffect } from 'react';
-import { useSessionStore } from '../store';
+import { useState } from 'react';
+import { useSessionStore, useEventsStore } from '../store';
 import { raceMonitorApi } from '../lib/racemonitor';
 import type { RMRace, RMSession, RMCompetitor, RMCompetitorDetails, RMLapTime } from '../types/racemonitor';
 import type { CarPosition } from '../types/redmist';
@@ -10,12 +10,10 @@ import {
   Zap,
   Database,
   Flag,
-  Clock,
   TrendingUp,
   User,
   MapPin,
   History,
-  CheckCircle,
   AlertTriangle,
   RefreshCw,
   ChevronRight,
@@ -52,10 +50,10 @@ interface ComparisonData {
 }
 
 export function DataSourceComparison({ onClose }: DataSourceComparisonProps) {
-  const { carPositions, sessionState, selectedEvent } = useSessionStore();
+  const { carPositions } = useSessionStore();
+  const { selectedEvent } = useEventsStore();
   
   // Race Monitor state
-  const [searchTerm, setSearchTerm] = useState(selectedEvent?.n || '');
   const [rmRaces, setRmRaces] = useState<RMRace[]>([]);
   const [rmSessions, setRmSessions] = useState<RMSession[]>([]);
   const [selectedRmRace, setSelectedRmRace] = useState<RMRace | null>(null);
@@ -77,12 +75,12 @@ export function DataSourceComparison({ onClose }: DataSourceComparisonProps) {
   const apiToken = import.meta.env.VITE_RACEMONITOR_API_TOKEN;
   const isConfigured = !!apiToken;
 
-  // Search for races
-  const handleSearch = async () => {
-    if (!searchTerm.trim() || !isConfigured) return;
+  // Load all races from account
+  const handleLoadRaces = async () => {
+    if (!isConfigured) return;
     
     setIsLoading(true);
-    setLoadingStep('Searching races...');
+    setLoadingStep('Loading races...');
     setError(null);
     setRmRaces([]);
     setRmSessions([]);
@@ -92,11 +90,11 @@ export function DataSourceComparison({ onClose }: DataSourceComparisonProps) {
 
     try {
       raceMonitorApi.setApiToken(apiToken);
-      const results = await raceMonitorApi.searchRaces(searchTerm);
-      setRmRaces(results.slice(0, 15));
+      const results = await raceMonitorApi.getAllRaces();
+      setRmRaces(results.slice(0, 20));
       setRequestCount(prev => prev + 1);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Search failed');
+      setError(err instanceof Error ? err.message : 'Failed to load races');
     } finally {
       setIsLoading(false);
       setLoadingStep('');
@@ -114,7 +112,7 @@ export function DataSourceComparison({ onClose }: DataSourceComparisonProps) {
     setError(null);
 
     try {
-      const sessions = await raceMonitorApi.getSessionsForRace(parseInt(race.ID));
+      const sessions = await raceMonitorApi.getSessionsForRace(race.ID);
       setRmSessions(sessions);
       setRequestCount(prev => prev + 1);
     } catch (err) {
@@ -133,7 +131,7 @@ export function DataSourceComparison({ onClose }: DataSourceComparisonProps) {
     setError(null);
 
     try {
-      const sessionDetails = await raceMonitorApi.getSessionDetails(parseInt(session.ID), false);
+      const sessionDetails = await raceMonitorApi.getSessionDetails(session.ID, false);
       setRmCompetitors(sessionDetails.SortedCompetitors || []);
       setRequestCount(prev => prev + 1);
       
@@ -148,7 +146,7 @@ export function DataSourceComparison({ onClose }: DataSourceComparisonProps) {
   };
 
   // Build comparison between RedMist and Race Monitor data
-  const buildComparisonData = (rmCompetitors: RMCompetitor[]) => {
+  const buildComparisonData = (rmCompetitorsList: RMCompetitor[]) => {
     const comparisons: ComparisonData[] = [];
     
     // Create lookup by car number from RedMist
@@ -162,7 +160,7 @@ export function DataSourceComparison({ onClose }: DataSourceComparisonProps) {
     });
     
     // Match Race Monitor competitors
-    rmCompetitors.forEach(rmCar => {
+    rmCompetitorsList.forEach(rmCar => {
       const carNum = rmCar.Number?.replace('#', '') || '';
       const redmistCar = redmistByNumber[carNum] || redmistByNumber[`#${carNum}`] || redmistByNumber[rmCar.Number];
       
@@ -245,7 +243,7 @@ export function DataSourceComparison({ onClose }: DataSourceComparisonProps) {
       
       if (competitor) {
         const details = await raceMonitorApi.getCompetitorDetails(
-          parseInt(selectedRmSession.ID), 
+          selectedRmSession.ID, 
           competitor.ID
         );
         setCarLapDetails(details);
@@ -312,6 +310,7 @@ export function DataSourceComparison({ onClose }: DataSourceComparisonProps) {
             </h2>
             <p style={{ margin: '0.25rem 0 0', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
               Side-by-side view of RedMist vs Race Monitor data
+              {selectedEvent && ` • Current: ${selectedEvent.n}`}
             </p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -350,38 +349,20 @@ export function DataSourceComparison({ onClose }: DataSourceComparisonProps) {
               </div>
             ) : (
               <>
-                {/* Search */}
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', marginBottom: '0.25rem', display: 'block' }}>
-                    SEARCH RACE MONITOR
-                  </label>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <input
-                      type="text"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                      placeholder="Event name..."
-                      style={{
-                        flex: 1,
-                        padding: '0.5rem',
-                        background: 'var(--bg-tertiary)',
-                        border: '1px solid var(--border-color)',
-                        borderRadius: '6px',
-                        color: 'var(--text-primary)',
-                        fontSize: '0.875rem',
-                      }}
-                    />
+                {/* Load Races Button */}
+                {rmRaces.length === 0 && (
+                  <div style={{ marginBottom: '1rem' }}>
                     <button 
                       className="btn btn-primary" 
-                      onClick={handleSearch}
+                      onClick={handleLoadRaces}
                       disabled={isLoading}
-                      style={{ padding: '0.5rem' }}
+                      style={{ width: '100%' }}
                     >
-                      <Search size={16} />
+                      {isLoading ? <RefreshCw size={16} className="spin" /> : <Search size={16} />}
+                      Load Race Monitor Races
                     </button>
                   </div>
-                </div>
+                )}
 
                 {/* Race Selection */}
                 {rmRaces.length > 0 && (
@@ -894,4 +875,3 @@ function UniqueDataCard({
     </div>
   );
 }
-
