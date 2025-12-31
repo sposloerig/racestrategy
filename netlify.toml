@@ -1,0 +1,20 @@
+# Netlify Configuration for RedMist Racing Dashboard
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# These VITE_* environment variables are intentionally exposed to the client
+# They are public API keys designed for frontend use:
+# - Supabase anon key is protected by Row Level Security
+# - RedMist API uses client credentials flow
+# - Race Monitor token is for public race data
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_ANON_KEY,VITE_SUPABASE_URL,VITE_REDMIST_CLIENT_ID,VITE_REDMIST_CLIENT_SECRET,VITE_RACEMONITOR_API_TOKEN"
+
+# SPA routing - redirect all routes to index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
